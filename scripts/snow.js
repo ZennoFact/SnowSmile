@@ -1,159 +1,149 @@
 (function() {
-  window.requestAnimationFrame =
-  window.requestAnimationFrame ||
-  window.mozRequestAnimationFrame ||
-  window.webkitRequestAnimationFrame ||
-  window.msRequestAnimationFrame ||
-  function(cb) {
-    setTimeout(cb, 17);
-  };
+    window.requestAnimationFrame =
+      window.requestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      window.webkitRequestAnimationFrame ||
+      window.msRequestAnimationFrame ||
+      function(cb) {
+        setTimeout(cb, 17);
+      };
 
-  var CJS = createjs,
-  canvas,
-  stage,
-  W,
-  H,
-  snowImg,
-  snows = [],
-  animationCount = 0,
-  isSnowCreated = false;
+    var canvas,
+      stage,
+      W,
+      H,
+      imgSnow,
+      snows = [],
+      frameCount = 0;
 
-  /*
-   * common
-   */
-  function preload() {
-    var preload = new CJS.LoadQueue(false);
-    preload.loadFile({
-      id: "snow",
-      src: "./assets/snow.png"
-    }, false);
-    preload.load();
-    preload.on("fileload", function(obj) {
-      snowImg = obj.result;
-    });
-    preload.on("complete", init);
-  }
-
-  function init() {
-    canvas = $("#canvas")[0];
-    W = innerWidth;
-    H = innerHeight;
-
-    canvas.width = W;
-    canvas.height = H;
-    video.width = W;
-    video.height = H;
-
-    stage = new CJS.Stage(canvas);
-    // CJS.Ticker.setFPS(60);
-    // CJS.Ticker.addEventListener("tick", tick);
-    // TODO: Step1 描画の開始
-    render();
-
-    snowInit();
-  }
-
-
-  // function tick() {
-  //   if (isSnowCreated) snowUpdate();
-  //   stage.update();
-  // }
-
-
-
-  /*
-   * snow effect
-   */
-  function snowInit() {
-    var max = Math.floor(stage.canvas.width / 40);
-    var snows = [];
-    var createFrameNum = 4;
-    var createCount = 0;
-
-    for (var i = 0, l = max; i < l; i++) {
-      snowCreate();
-    }
-    isSnowCreated = true;
-  }
-
-  function snowCreate() {
-    var bmp = new CJS.Bitmap(snowImg)
-    // 雪の初期サイズの決定
-    var size = Math.floor(stage.canvas.width / 1000 + Math.random() * 20);
-    var scale = size / snowImg.width;
-
-    bmp.width = size;
-    bmp.height = size;
-    bmp.scaleX = scale;
-    bmp.scaleY = scale;
-    bmp.x = Math.random() * stage.canvas.width;
-    bmp.y = 0 - size - Math.random() * 100;
-
-    //
-    bmp.base_x = bmp.x;
-    bmp.angle = 0;
-    // 雪の振れ幅を決定
-    bmp.vangle = (Math.random() - Math.random()) / size / 16;
-
-    //
-    bmp.isLanding = false;
-
-    //
-    bmp.vy = size * 0.05;
-    //
-    bmp.vx = size * 10;
-
-    snows.push(bmp);
-    stage.addChild(bmp);
-  }
-
-  function snowUpdate() {
-    animationCount++;
-    //
-    if (animationCount % 2 == 0) {
-      snowCreate();
+    /*
+     * common
+     */
+    function preload() {
+      var preload = new createjs.LoadQueue(false);
+      preload.loadFile({
+        id: "snow",
+        src: "./assets/snow.png"
+      }, false);
+      preload.load();
+      preload.on("fileload", function(obj) {
+        imgSnow = obj.result;
+      });
+      preload.on("complete", init);
     }
 
-    //
-    for (var i = 0; i < snows.length; i++) {
-      var snow = snows[i];
+    function init() {
+      canvas = $("#canvas")[0];
+      W = innerWidth;
+      H = innerHeight;
+
+      canvas.width = W;
+      canvas.height = H;
+      video.width = W;
+      video.height = H;
+
+      stage = new createjs.Stage(canvas);
+      // フレームレートと毎フレーム実行される関数をセット
+      createjs.Ticker.setFPS(60);
+      createjs.Ticker.addEventListener("tick", render);
+
+      initSnows();
+
+      // TODO: Step1 描画の開始
+      render();
+    }
+
+    /*
+     * snow effect
+     */
+    function initSnows() {
+      var max = Math.floor(stage.canvas.width / 40);
+
+      for (var i = 0, l = max; i < l; i++) {
+        var snow = new Snow(imgSnow);
+        snow.create();
+      }
+    }
+
+    var Snow = function(imgSnow) {
+      this.initialize(imgSnow);
+    };
+    var p = Snow.prototype = new createjs.Bitmap();
+    Object.setPrototypeOf(Snow.prototype, createjs.Bitmap.prototype);
+
+    Snow.prototype.create = function() {
+      // 雪の初期サイズの決定
+      var size = Math.floor(stage.canvas.width / 1000 + Math.random() * 20);
+      var scale = size / imgSnow.width;
+
+      this.width = size;
+      this.height = size;
+      this.scaleX = scale;
+      this.scaleY = scale;
+      this.x = Math.random() * stage.canvas.width;
+      this.y = 0 - size - Math.random() * 100;
 
       //
-      if (snow.isLanding) {
-        snow.alpha -= 0.0015;
+      this.base_x = this.x;
+      this.angle = 0;
+      // 雪の振れ幅を決定
+      this.vangle = (Math.random() - Math.random()) / size / 16;
+
+      // 大地に触れると止まるかどうか
+      this.isLanding = false;
+
+      //　
+      this.vy = size * 0.05;
+      //
+      this.vx = size * 10;
+
+      snows.push(this);
+      stage.addChild(this);
+    };
+
+    Snow.prototype.update = function(i) {
+      if (this.isLanding) {
+        this.alpha -= 0.0015;
         // remove
-        if (snow.alpha <= 0) {
+        if (this.alpha <= 0) {
           snows.splice(i, 1);
-          stage.removeChild(snow);
-          i--;
+          stage.removeChild(this);
+          console.log(snows.length);
         }
-        continue;
+        // continue;
       } else {
         //
-        snow.angle += snow.vangle;
-        snow.y += snow.vy;
-        snow.x = snow.base_x + snow.vx * Math.sin(snow.angle);
+        this.angle += this.vangle;
+        this.y += this.vy;
+        this.x = this.base_x + this.vx * Math.sin(this.angle);
+
+        // hitTest
+        if (this.y >= stage.canvas.height - this.height) {
+          this.isLanding = true;
+        }
       }
+    };
 
-      // hitTest
-      if (snow.y >= stage.canvas.height - snow.width) {
-        snow.isLanding = true;
-      }
-
-    }
-
-  };
 
   // 描画
   function render() {
-    if (isSnowCreated) snowUpdate();
+    // TODO: この辺の処理なんとかならんかな
+    frameCount++;
+    //
+    if (frameCount % 2 == 0) {
+      var snow = new Snow(imgSnow);
+      snow.create();
+    }
+
+    snows.forEach(function(snow, i) {
+      snow.update(i);
+    });
+
     // CreateJSの更新
     stage.update();
     // requestanimationframeをつかって、ブラウザの更新のタイミングに実行する
-    requestAnimationFrame( render );
+    // requestAnimationFrame(render);
   }
-
-
 
   preload();
 })();
