@@ -1,0 +1,104 @@
+* {
+  margin: 0;
+}
+
+body {
+  background: #000;
+}
+.container {
+  position: relative;
+}
+h1{
+  position: absolute;
+  color: #fff;
+  margin: 80px 50px;
+  z-index: 3;
+  user-select: none; /* CSS3 */
+  -moz-user-select: none; /* Firefox */
+  -webkit-user-select: none; /* Safari、Chrome, etc. */
+  -ms-user-select: none; /* IE10~ */
+}
+  h1:hover {
+    cursor: pointer;
+  }
+
+.green {
+  color: #094;
+}
+.red {
+  color: #B81C22;
+}
+
+.file {
+  position: absolute;
+  display: inline-block;
+  overflow: hidden;
+  /*position: relative;*/
+  margin: 140px 50px;
+  padding: .5em;
+  color: #fff;
+  background-color: #009944;
+  z-index: 3;
+  font-family: helvetica, arial, 'hiragino kaku gothic pro', meiryo, 'ms pgothic', sans-serif;
+}
+
+.fileReader {
+  opacity: 0;
+  filter: progid:DXImageTransform.Microsoft.Alpha(opacity=0);
+  position: absolute;
+  right: 0;
+  top: 0;
+  margin: 0;
+  font-size: 100px;
+  cursor: pointer;
+}
+
+.video {
+  position: absolute;
+  display: inline-block;
+  overflow: hidden;
+  /*position: relative;*/
+  margin: 140px 170px;
+  padding: .5em;
+  color: #fff;
+  background-color: #B81C22;
+  z-index: 3;
+  font-family: helvetica, arial, 'hiragino kaku gothic pro', meiryo, 'ms pgothic', sans-serif;
+}
+
+.videoReader {
+  opacity: 0;
+  filter: progid:DXImageTransform.Microsoft.Alpha(opacity=0);
+  position: absolute;
+  right: 0;
+  top: 0;
+  margin: 0;
+  font-size: 100px;
+  cursor: pointer;
+  /* TODO: なぜかカメラが反転しない */
+}
+
+#canvas {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+#id {
+  position: absolute;
+  right: 0;
+  top: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.noDisp {
+  display: none;
+}
+
+#video {
+  -webkit-transform: scaleX(-1);
+}

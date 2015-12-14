@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Falling Snow | -KCG Open Campus Christmas SP-</title>
+  <meta name="copyright" content="Copyright (C) Kazuki Maeno">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <header>
+      <h1>
+        <span class="green">Falling Snow:</span> <span class="red">-KCG Open Campus Christmas SP-</span>
+      </h1>
+      <div class="file">
+        Load Image !
+        <input class="fileReader" type="file" name="filereader" value="upload">
+      </div>
+      <div class="video">
+        Capture Start !
+        <input class="videoReader" type="button" name="videoreader" value="video">
+      </div>
+    </header>
+    <div>
+      <video id="video" class="noDisp" autoplay="1" ></video>
+    </div>
+    <div>
+      <canvas id="canvas"></canvas>
+    </div>
+
+  </div>
+
+  <script src="./scripts/lib/jquery-2.1.3.min.js"></script>
+  <script src="./scripts/lib/easeljs-0.8.2.min.js"></script>
+  <script src="./scripts/lib/preloadjs-0.6.2.min.js"></script>
+  <script src="./scripts/common.js"></script>
+  <script src="./scripts/snow.js"></script>
+</body>
+
+</html>
