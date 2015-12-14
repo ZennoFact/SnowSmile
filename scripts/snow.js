@@ -44,8 +44,8 @@
 
       stage = new createjs.Stage(canvas);
       // フレームレートと毎フレーム実行される関数をセット
-      createjs.Ticker.setFPS(60);
-      createjs.Ticker.addEventListener("tick", render);
+      // createjs.Ticker.setFPS(60);
+      // createjs.Ticker.addEventListener("tick", render);
 
       initSnows();
 
@@ -142,7 +142,7 @@
     // CreateJSの更新
     stage.update();
     // requestanimationframeをつかって、ブラウザの更新のタイミングに実行する
-    // requestAnimationFrame(render);
+    requestAnimationFrame(render);
   }
 
   preload();
