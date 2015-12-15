@@ -13,6 +13,7 @@
       W,
       H,
       imgSnow,
+      imgLandingSnow,
       snows = [],
       frameCount = 0;
 
@@ -20,16 +21,34 @@
      * common
      */
     function preload() {
-      var preload = new createjs.LoadQueue(false);
-      preload.loadFile({
-        id: "snow",
-        src: "./assets/snow.png"
-      }, false);
-      preload.load();
-      preload.on("fileload", function(obj) {
-        imgSnow = obj.result;
-      });
-      preload.on("complete", init);
+      // var preload = new createjs.LoadQueue(false);
+      // preload.loadFile({
+      //   id: "snow",
+      //   src: "./assets/snow.png"
+      // }, false);
+      // preload.load();
+      // preload.on("fileload", function(obj) {
+      //   imgSnow = obj.result;
+      // });
+      // preload.on("complete", init);
+
+      var queue = new createjs.LoadQueue(true);
+      queue.setMaxConnections(2);
+      var manifest = [
+        {"id":"snow", "src":"./assets/snow.png"},
+        {"id":"landing_snow", "src":"./assets/landing_snow.png"}
+      ];
+      queue.loadManifest(manifest,false);
+      queue.load();
+      queue.addEventListener("complete",handleComplete);
+    }
+
+
+    function handleComplete(event){
+        var result = event.target._loadedResults;
+        imgSnow = result["snow"];
+        imgLandingSnow = result["landing_snow"];
+        init();
     }
 
     function init() {
@@ -60,9 +79,20 @@
       var max = Math.floor(stage.canvas.width / 40);
 
       for (var i = 0, l = max; i < l; i++) {
-        var snow = new Snow(imgSnow);
-        snow.create();
+        // TODO: この処理まとめれる（下にほぼ同じものが2つ）
+        var size = Math.floor(stage.canvas.width / 1000 + Math.random() * 20);
+        var data = createData(size);
+        var snow = (new Snow(imgSnow)).create(false, data);
       }
+    }
+
+    function createData(size) {
+      var data = {
+        x: Math.random() * stage.canvas.width,
+        y: 0 - size - Math.random() * 100,
+        size: size
+      };
+      return data;
     }
 
     var Snow = function(imgSnow) {
@@ -71,17 +101,17 @@
     var p = Snow.prototype = new createjs.Bitmap();
     Object.setPrototypeOf(Snow.prototype, createjs.Bitmap.prototype);
 
-    Snow.prototype.create = function() {
+    Snow.prototype.create = function(isLanding, data) {
       // 雪の初期サイズの決定
-      var size = Math.floor(stage.canvas.width / 1000 + Math.random() * 20);
+      var size = data.size;
       var scale = size / imgSnow.width;
 
       this.width = size;
       this.height = size;
       this.scaleX = scale;
       this.scaleY = scale;
-      this.x = Math.random() * stage.canvas.width;
-      this.y = 0 - size - Math.random() * 100;
+      this.x = data.x;
+      this.y = data.y;
 
       //
       this.base_x = this.x;
@@ -89,8 +119,8 @@
       // 雪の振れ幅を決定
       this.vangle = (Math.random() - Math.random()) / size / 16;
 
-      // 大地に触れると止まるかどうか
-      this.isLanding = false;
+      // 積もっているかどうか
+      this.isLanding = isLanding;
 
       //　
       this.vy = size * 0.05;
@@ -108,7 +138,6 @@
         if (this.alpha <= 0) {
           snows.splice(i, 1);
           stage.removeChild(this);
-          console.log(snows.length);
         }
         // continue;
       } else {
@@ -118,8 +147,13 @@
         this.x = this.base_x + this.vx * Math.sin(this.angle);
 
         // hitTest
-        if (this.y >= stage.canvas.height - this.height) {
-          this.isLanding = true;
+        if (this.y >= stage.canvas.height - this.height / 2) {
+          var data = createData(this.width);
+          data.x = this.x;
+          data.y = this.y;
+          var snow = (new Snow(imgLandingSnow)).create(true, data);
+          snows.splice(i, 1);
+          stage.removeChild(this);
         }
       }
     };
@@ -131,8 +165,9 @@
     frameCount++;
     //
     if (frameCount % 2 == 0) {
-      var snow = new Snow(imgSnow);
-      snow.create();
+      var size = Math.floor(stage.canvas.width / 1000 + Math.random() * 20);
+      var data = createData(size);
+      var snow = (new Snow(imgSnow)).create(false, data);
     }
 
     snows.forEach(function(snow, i) {
