@@ -92,16 +92,28 @@ h1{
 }
 #snow_canvas {
   position: absolute;
-  right: 0;
-  top: 0;
+  right: 0px;
+  top: 250px;
   width: 100%;
-  height: 0px;
   z-index: 2;
-  background: -webkit-gradient(linear,left top,left bottom,from(rgba(240,240,240,0.8)),
+  background-color: #fff;
+  /*background: -webkit-gradient(linear,left top,left bottom,from(rgba(240,240,240,0.8)),
     color-stop(0.01, rgba(240,240,240,1.0)),
-    to(rgba(240,240,240,1.0)));
+    to(rgba(240,240,240,1.0)));*/
 }
-
+  #snow_canvas:hover {
+    cursor: url("../assets/cristal.png"), default;
+  }
+#fake_div {
+  position: absolute;
+  right: 0px;
+  width: 100%;
+  z-index: 2;
+  background-color: #fff;
+  /*background: -webkit-gradient(linear,left top,left bottom,from(rgba(240,240,240,0.8)),
+    color-stop(0.01, rgba(240,240,240,1.0)),
+    to(rgba(240,240,240,1.0)));*/
+}
 #id {
   position: absolute;
   right: 0;
@@ -116,23 +128,4 @@ h1{
 
 #video {
   -webkit-transform: scaleX(-1);
-}
-
-/* Todo: ここ，頑張るとこ */
-@media screen and (min-width:480px) {
-    /*　for iPhone Landscape　(iPhone 横)　*/
-
-}
-@media screen and (min-width:768px) and ( max-width:1024px) {
-    /*　for iPad 　*/
-
-}
-@media screen and (min-width:1024px) {
-    /*　for PC　*/
-
-}
-
-/* ちゃんと動くのか */
-@media only screen and (orientation : portrait) { /*縦向き*/
-body {transform: rotate(90deg);}
 }

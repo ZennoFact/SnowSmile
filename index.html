@@ -2,8 +2,11 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>Falling Snow | -KCG Open Campus Christmas SP-</title>
+  <title>Snow Smile | -KCG Open Campus Christmas SP-</title>
   <meta name="copyright" content="Copyright (C) Kazuki Maeno">
+  <link rel="icon" type="image/png" href="./assets/icons/favicon-16x16.png" sizes="16x16">
+  <link rel="icon" type="image/png" href="./assets/icons/favicon-32x32.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="./assets/isons/favicon-96x96.png" sizes="96x96">
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
@@ -26,7 +29,8 @@
     </div>
     <div>
       <canvas id="canvas"></canvas>
-      <canvas id="snow_canvas"></canvas>
+      <canvas id="snow_canvas" class="noDisp"></canvas>
+      <div id="fake_div"></div>
     </div>
 
   </div>
@@ -34,9 +38,10 @@
   <script src="./scripts/lib/jquery-2.1.3.min.js"></script>
   <script src="./scripts/lib/easeljs-0.8.2.min.js"></script>
   <script src="./scripts/lib/AlphaMaskFilter.js"></script>
+  <script src="./scripts/lib/BlurFilter.js"></script>
   <script src="./scripts/lib/preloadjs-0.6.2.min.js"></script>
-  <script src="./scripts/common.js"></script>
   <script src="./scripts/snow.js"></script>
+  <script src="./scripts/common.js"></script>
 </body>
 
 </html>

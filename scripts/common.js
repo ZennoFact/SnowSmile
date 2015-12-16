@@ -5,6 +5,9 @@ $(window).resize(function() {
   canvas.width = W;
   canvas.height = H;
 
+  // snowCanvas.width = W;
+  // snowCanvas.height = H;
+
   video.width = W;
   video.height = H;
 });
@@ -62,10 +65,22 @@ $('.fileReader').click(function() {
   $('#video').addClass("noDisp");
 });
 
-// 背景画像の読み込みがここでできたらいいな
-$('h1').click(function() {
-
-});
+// TODO: 個々の処理，addEventListenerにして，参加者に一行だけ書かせる
+var modeFlag = true;
+$('h1')[0].addEventListener('click', titleClick);
+function titleClick() {
+  if(modeFlag) {
+    $('.green').text('Snow Cristal:');
+    modeFlag = false;
+    imgMain = imgCristal;
+    imgReverse = imgSnow;
+  } else {
+    $('.green').text('Falling Snow:');
+    modeFlag = true;
+    imgMain = imgSnow;
+    imgReverse = imgCristal;
+  }
+}
 
 
 $('.video').click(function() {
