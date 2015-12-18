@@ -15,6 +15,7 @@ var canvas,
   display,
   maskSnow,
   maskTrack,
+  maskSky,
   isEditable = false,
   W,
   H,
@@ -44,14 +45,15 @@ function preload() {
       "id": "landing_snow",
       "src": "./assets/landing_snow.png"
     }, {
+      // どっち使ったらいいのかを決めなきゃね
       "id": "cristal",
       "src": "./assets/cristal.png"
     }, {
       "id": "default",
-      "src": "./assets/default.png"
+      "src": "./assets/images/default.jpg"
     }, {
       "id": "town6",
-      "src": "./assets/images/town6.png"
+      "src": "./assets/images/town6.jpg"
     }
     // {"id":"cristal", "src":"./assets/cristal.svg"}
   ];
@@ -75,8 +77,9 @@ function handleComplete(event) {
   imgLandingSnow = result["landing_snow"];
   imgCristal = result["cristal"];
   imgMain = imgSnow;
-  imgReverse = imgCristal:
-  backgroundList[6 - 1] = result["town" + 6];
+  imgReverse = imgCristal;
+  backgroundList[0] = result["default"];
+  backgroundList[6] = result["town" + 6];
   init();
 }
 
@@ -101,15 +104,39 @@ function init() {
   // TODO: filterの処理を開始
   maskTrack = new createjs.Shape();
   maskTrack.graphics.drawRect(0, 0, canvas.width, canvas.height);
+  maskTrack.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
+
   maskSnow = new createjs.Shape();
-  maskSnow.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, canvas.height);
+  maskSnow.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
+  maskSnow.graphics.beginFill("#ffffff").drawRect(0, 250, canvas.width, canvas.height - 250);
+  // maskSnow.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, canvas.height);
   maskSnow.cache(0, 0, canvas.width, canvas.height);
-  maskSnow.compositeOperation = this.type;
-  display = new createjs.Shape().set({
-    x: 0,
-    y: 0
-  });
-  display.graphics.beginFill("#000000").drawRect(0, 0, canvas.width, canvas.height);
+
+  // 表示するべき背景の生成
+  display = new createjs.Bitmap(backgroundList[6]);
+  // var _scaleX = canvas.width / display.width;
+  // var _scaleY = canvas.height / display.height;
+  // if (_scaleX < _scaleY) {
+  //   display = {
+  //     width: display.width * _scaleX,
+  //     height:  display.width * _scaleX,
+  //     // display.scaleX = _scaleX,
+  //     // display.scaleY = _scaleX
+  //   }
+  // } else {
+  //   display = {
+  //     width: display.width * _scaleY,
+  //     height:  display.width * _scaleY,
+  //     // display.scaleX = _scaleY,
+  //     // display.scaleY = _scaleY,
+  //   }
+  // }
+
+  // display = new createjs.Bitmap(backgroundList[0]).set({
+  //   x: 0,
+  //   y: 0
+  // });
+  // display.graphics.beginFill("#000000").drawRect(0, 0, canvas.width, canvas.height);
 
   display.filters = [
     new createjs.AlphaMaskFilter(maskSnow.cacheCanvas)
@@ -124,7 +151,7 @@ function init() {
   stage.enableDOMEvents(true);
   createjs.Touch.enable(stage);
 
-  drawingCanvas = new createjs.Shape();
+  // drawingCanvas = new createjs.Shape();
 
   stage.addEventListener("stagemousedown", handleMouseDown);
   stage.addEventListener("stagemouseup", handleMouseUp);
@@ -133,6 +160,7 @@ function init() {
 
   // TODO: Maskの実験中
   stage.addChild(display);
+  console.log(stage);
 
   // // お絵かきの実験中
   // stage.addChild(drawingCanvas);
@@ -218,6 +246,7 @@ Snow.prototype.create = function(isLanding, data) {
   this.imgReverse = imgReverse;
 
   snows.push(this);
+  // addChildAt(child, index)では，マスクがかかっているところしか表示してくれなくなるので不可
   stage.addChild(this);
 };
 
@@ -234,32 +263,37 @@ Snow.prototype.update = function(i) {
 
     // 雪が透明になったら削除する
     if (this.alpha <= 0) {
+
       // 地面に雪が積もるように処理
-      landingCount++;
-      // 雪が何個地面に振り落ちたら積もるかの設定
-      // TODO: ここの設定を最適化
-      if (landingCount % 1 === 0 && landingLine < canvas.height) {
-        // TODO:
-        landingLine++;
-        // landingLine = canvas.height - 250;
+      if(!isEditable) {
+        landingCount++;
 
-        // マスクの変更 境界線を美しく出すためにはどうしたらいい？
-        var maskSnow = new createjs.Shape();
-        maskSnow.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, canvas.height - landingLine);
-        maskSnow.cache(0, 0, canvas.width, canvas.height);
-        maskSnow.updateCache();
-        display.filters = [
-          new createjs.AlphaMaskFilter(maskSnow.cacheCanvas)
-        ];
-        // TODO: どっちが正しいんだ？
-        display.cache(0, 0, canvas.width, canvas.height);
-        // display.updateCache();
+        // 雪が何個地面に振り落ちたら積もるかの設定
+        // TODO: ここの設定を最適化
+        if (landingCount % 1 === 0 && landingLine < canvas.height) {
+          // TODO:
+          landingLine++;
+          console.log(landingLine);
+          // landingLine = canvas.height - 250;
 
-        if(landingCount === canvas.height) {
-          isEditable = true;
+          // マスクの変更 境界線を美しく出すためにはどうしたらいい？
+          var maskSnow = new createjs.Shape();
+          maskSnow.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
+          maskSnow.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, canvas.height - landingLine);
+          maskSnow.cache(0, 0, canvas.width, canvas.height);
+          maskSnow.updateCache();
+          display.filters = [
+            new createjs.AlphaMaskFilter(maskSnow.cacheCanvas)
+          ];
+          // TODO: どっちが正しいんだ？
+          display.cache(0, 0, canvas.width, canvas.height);
+          // display.updateCache();
+
+          if(landingLine === canvas.height - 250) {
+            isEditable = true;
+          }
         }
       }
-
       snows.splice(i, 1);
       stage.removeChild(this);
     }
@@ -319,9 +353,11 @@ function handleMouseDown(event) {
 
 function handleMouseMove(event) {
   console.log("MouseMove");
-  var midPt = new createjs.Point(oldPt.x + stage.mouseX >> 1, oldPt.y + stage.mouseY >> 1);
 
+  var midPt = new createjs.Point(oldPt.x + stage.mouseX >> 1, oldPt.y + stage.mouseY >> 1);
   maskTrack.graphics.setStrokeStyle(30, 'round', 'round').beginStroke('#70A8DA').moveTo(midPt.x, midPt.y).curveTo(oldPt.x, oldPt.y, oldMidPt.x, oldMidPt.y);
+
+
   maskTrack.cache(0, 0, canvas.width, canvas.height);
   display.filters = [
     new createjs.AlphaMaskFilter(maskTrack.cacheCanvas)

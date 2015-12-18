@@ -38,15 +38,15 @@ $('.fileReader').change(function() {
   // callback
   fileReader.onload = function(event) {
     bgImage = event.target.result;
-    $("#canvas").css({
-      "background-image": "url(" + bgImage + ")",
-      "background-position": "center center",
-      "background-repeat": "no-repeat",
-      "background-attachment": "fixed",
-      "background-size": "cover"
-    });
-    $('#video').addClass("noDisp");
-
+    // $("#canvas").css({
+    //   "background-image": "url(" + bgImage + ")",
+    //   "background-position": "center center",
+    //   "background-repeat": "no-repeat",
+    //   "background-attachment": "fixed",
+    //   "background-size": "cover"
+    // });
+    // $('#video').addClass("noDisp");
+    display = new createjs.Bitmap(bgImage);
   };
 
   // get imageFile
@@ -54,14 +54,14 @@ $('.fileReader').change(function() {
 });
 
 $('.fileReader').click(function() {
-  $("body").css({
-    "background-image": "url(" + bgImage + ")",
-    "background-position": "center center",
-    "background-repeat": "no-repeat",
-    "background-attachment": "fixed",
-    "background-size": "cover"
-  });
-  $('#video').addClass("noDisp");
+  // $("body").css({
+  //   "background-image": "url(" + bgImage + ")",
+  //   "background-position": "center center",
+  //   "background-repeat": "no-repeat",
+  //   "background-attachment": "fixed",
+  //   "background-size": "cover"
+  // });
+  // $('#video').addClass("noDisp");
 });
 
 // TODO: 個々の処理，addEventListenerにして，参加者に一行だけ書かせる
