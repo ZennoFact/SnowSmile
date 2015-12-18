@@ -57,19 +57,13 @@ function preload() {
     }
     // {"id":"cristal", "src":"./assets/cristal.svg"}
   ];
+
   queue.loadManifest(manifest, false);
   queue.load();
   queue.addEventListener("complete", handleComplete);
 
-  var file = './assets/cristal.svg';
-  var loader = new createjs.LoadQueue(true); //XHRを有効
-  loader.addEventListener("fileload", loadedSvg);
-  loader.loadFile({src: file, type:　createjs.AbstractLoader.SVG});
 }
 
-function loadedSvg(eventObj) {
-  icon = eventObj.item.src;
-}
 
 function handleComplete(event) {
   var result = event.target._loadedResults;
@@ -80,6 +74,7 @@ function handleComplete(event) {
   imgReverse = imgCristal;
   backgroundList[0] = result["default"];
   backgroundList[6] = result["town" + 6];
+
   init();
 }
 
@@ -114,29 +109,6 @@ function init() {
 
   // 表示するべき背景の生成
   display = new createjs.Bitmap(backgroundList[6]);
-  // var _scaleX = canvas.width / display.width;
-  // var _scaleY = canvas.height / display.height;
-  // if (_scaleX < _scaleY) {
-  //   display = {
-  //     width: display.width * _scaleX,
-  //     height:  display.width * _scaleX,
-  //     // display.scaleX = _scaleX,
-  //     // display.scaleY = _scaleX
-  //   }
-  // } else {
-  //   display = {
-  //     width: display.width * _scaleY,
-  //     height:  display.width * _scaleY,
-  //     // display.scaleX = _scaleY,
-  //     // display.scaleY = _scaleY,
-  //   }
-  // }
-
-  // display = new createjs.Bitmap(backgroundList[0]).set({
-  //   x: 0,
-  //   y: 0
-  // });
-  // display.graphics.beginFill("#000000").drawRect(0, 0, canvas.width, canvas.height);
 
   display.filters = [
     new createjs.AlphaMaskFilter(maskSnow.cacheCanvas)
@@ -165,11 +137,16 @@ function init() {
   // // お絵かきの実験中
   // stage.addChild(drawingCanvas);
 
+  // TODO: オーディオファイルを登録
+
+
   initSnows();
 
   // TODO: Step1 描画の開始
   render();
 }
+
+
 
 /*
  * snow effect
@@ -251,6 +228,8 @@ Snow.prototype.create = function(isLanding, data) {
 };
 
 Snow.prototype.clicked = function(e) {
+  // TODO: 音を出す処理
+  // createjs.Sound.play("bell");
   e.target.image = new createjs.Bitmap(e.target.imgReverse).image;
   var tmp = e.target.imgReverse;
   e.target.imgReverse = e.target.imgMain;
@@ -346,8 +325,7 @@ function handleMouseDown(event) {
   oldMidPt = oldPt;
 
   if(isEditable) {
-    stage.addEventListener("stagemousemove", handleMouseMove);
-    // maskSnow.graphics.setStrokeStyle(radius * 2, "round", "round");
+    stage.addEventListener("stagemousemove", handleMouseMove);  
   }
 }
 
@@ -355,8 +333,13 @@ function handleMouseMove(event) {
   console.log("MouseMove");
 
   var midPt = new createjs.Point(oldPt.x + stage.mouseX >> 1, oldPt.y + stage.mouseY >> 1);
+
   maskTrack.graphics.setStrokeStyle(30, 'round', 'round').beginStroke('#70A8DA').moveTo(midPt.x, midPt.y).curveTo(oldPt.x, oldPt.y, oldMidPt.x, oldMidPt.y);
 
+  // TODO: マスクの合成実験
+  // var tempShape = new createjs.Shape();
+  // tempShape = maskSnow;
+  // maskTrack.graphics.beginFill("#ffffff").draw(tempShape);
 
   maskTrack.cache(0, 0, canvas.width, canvas.height);
   display.filters = [
