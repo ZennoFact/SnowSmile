@@ -38,7 +38,7 @@ $('.fileReader').change(function() {
   // callback
   fileReader.onload = function(event) {
     bgImage = event.target.result;
-    $("body").css({
+    $("#canvas").css({
       "background-image": "url(" + bgImage + ")",
       "background-position": "center center",
       "background-repeat": "no-repeat",

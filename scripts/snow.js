@@ -29,7 +29,7 @@ var canvas,
   landingCount = 0,
   landingLine = 0,
   bgVideo,
-  bgImage;
+  backgroundList = {};
 
 /*
  * common
@@ -46,6 +46,12 @@ function preload() {
     }, {
       "id": "cristal",
       "src": "./assets/cristal.png"
+    }, {
+      "id": "default",
+      "src": "./assets/default.png"
+    }, {
+      "id": "town6",
+      "src": "./assets/images/town6.png"
     }
     // {"id":"cristal", "src":"./assets/cristal.svg"}
   ];
@@ -69,7 +75,8 @@ function handleComplete(event) {
   imgLandingSnow = result["landing_snow"];
   imgCristal = result["cristal"];
   imgMain = imgSnow;
-  imgReverse = imgCristal;
+  imgReverse = imgCristal:
+  backgroundList[6 - 1] = result["town" + 6];
   init();
 }
 
