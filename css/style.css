@@ -26,7 +26,17 @@ h1{
 #title {
   display: block;
 }
-
+#title span span {
+  display: inline-block;
+  min-width: 10px;
+  opacity: 0px;
+  -webkit-transform: scale(10);
+}
+#title span.motion .green {
+  opacity: 1;
+  -webkit-transform: scale(1);
+  -webkit-transition: all 0.5s;
+}
 .green {
   color: #094;
 }
@@ -107,12 +117,7 @@ h1{
   display: none;
 }
 
-#video {
-  // 映像の反転のために必要
-  -webkit-transform: scaleX(-1);
-}
-
-/* ホットスポットの値は，画像のサイズ - 描画する線の太さ(64-12) */
+/* ホットスポットの値は，画像のサイズの半分 - 描画する線の太さ(32-12) */
 .editable {
-  cursor: url("../assets/cristal2.png") 52 52, auto;
+  cursor: url("../assets/cristal2.png") 32 32, auto;
 }

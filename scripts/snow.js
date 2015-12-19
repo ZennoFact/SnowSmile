@@ -12,13 +12,17 @@ navigator.getMedia = ( navigator.getUserMedia ||
                           navigator.webkitGetUserMedia ||
                           navigator.mozGetUserMedia ||
                           navigator.msGetUserMedia );
+
+// 事前に画像ファイルを読み込むよ
+preload();
+
 /*
  * プログラムに使用するパラメータ類の設定。
  * データには名前を付けなきゃなんの名前か分からないよね？
  * ここでは，データの入れ物に名前を付けています。目印は，「var」
  */
 var canvas, // 画面にものを表示する部分。絵を描くときにキャンバスを使用するでしょ？そのキャンバス
-  stage, // CreateJS独自のもの。ものを自表示するのは舞台。だから舞台上に部品を置いておきます
+  stage, // CreateJS独自のもの。ものを設置するのは舞台。だから舞台上に部品を置いておきます
   display, // 舞台上に映像を投影するディスプレイを設置。テレビのモニターって言ってもいいもの
   snowMask, // 顔に付ける仮面は英語でMask。覆い隠すもの。雪を表現するためにdisplayに被せます
   mouseMoveMask, // snowMaskと同じく，displayに被せます。これは，マウスの軌跡を記録するよ
@@ -49,129 +53,13 @@ var canvas, // 画面にものを表示する部分。絵を描くときにキ�
 // TODO: filters test
 var filtersList = [];
 
-// プログラム内で読み込む画像データなどをここで手元に置いておくことにします。「あらかじめ」やることをまとめるよ命令です
-function preload() {
-  var queue = new createjs.LoadQueue(true);
-  queue.setMaxConnections(2);
-  // どの画像をどんな名前で管理するかを決定するよ。「id」は「識別子」，誰ともかぶることのない，独自の番号（名前）。「src」は「source（源）」の略
-  var manifest = [{
-      "id": "snow",
-      "src": "./assets/snow.png"
-    }, {
-      "id": "landing_snow",
-      "src": "./assets/landing_snow.png"
-    }, {
-      // どっち使ったらいいのかを決めなきゃね
-      "id": "cristal",
-      "src": "./assets/cristal.png"
-    }, {
-      "id": "default",
-      "src": "./assets/images/default.jpg"
-    }, {
-      "id": "town1",
-      "src": "./assets/images/town1.jpg"
-    }, {
-      "id": "town2",
-      "src": "./assets/images/town2.jpg"
-    }, {
-      "id": "town3",
-      "src": "./assets/images/town3.jpg"
-    }, {
-      "id": "town4",
-      "src": "./assets/images/town4.jpg"
-    }, {
-      "id": "town5",
-      "src": "./assets/images/town5.jpg"
-    }, {
-      "id": "town6",
-      "src": "./assets/images/town6.jpg"
-    }
-    //, {"id":"cristal", "src":"./assets/cristal.svg"}
-  ];
-  // 指定したリスト（マニフェスト）に従って画像を読み込むよー
-  queue.loadManifest(manifest, false);
-  queue.load();
-  // 読み込みが完了したら「handleComplete」って命令を起動するよ
-  queue.addEventListener("complete", handleComplete);
-
-}
-
-// 読み込みが完了したよ，万歳。取得した情報は「event」という名前で取得することにします
-function handleComplete(event) {
-  // 読み込み完了に伴い，その結果を保存します
-  var result = event.target._loadedResults;
-  // 決めてあった箱に画像データを入れていくよ。
-  // プログラムで「=」は，左辺のものに右辺のものを入れます意味です。イコールじゃないから要注意
-  imgSnow = result["snow"];
-  imgLandingSnow = result["landing_snow"];
-  imgCristal = result["cristal"];
-  imgMain = imgSnow;
-  imgReverse = imgCristal;
-  backgroundList[0] = result["default"];
-  for(var i = 0; i < 8; i++) {
-    backgroundList[i] = result["town" + i];
-  }
-
-  // よし，事前情報は集まった。いざ，このプログラムの初期化を初期化するよ
-  init();
-}
-
-// 初期化（initialize）するための命令です。必要な情報を箱に詰め込んでいきます
-function init() {
-  canvas = $("#canvas")[0];
-  W = innerWidth;
-  H = innerHeight;
-  canvas.width = W;
-  canvas.height = H;
-  video.width = W;
-  video.height = H;
-  bgVideo = document.getElementById( 'video' );
-  bgVideo.width = W;
-  bgVideo.height = H;
-
-  // さあ，いよいよ僕らの舞台を作成するよ。「canvas」を使って舞台を作って保存！
-  stage = new createjs.Stage(canvas);
-
-  // 舞台に被せるための「マスク」を作っておきましょう
-  mouseMoveMask = new createjs.Shape();
-  mouseMoveMask.graphics.drawRect(0, 0, canvas.width, canvas.height);
-  mouseMoveMask.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
-
-  snowMask = new createjs.Shape();
-  snowMask.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
-  snowMask.graphics.beginFill("#ffffff").drawRect(0, 250, canvas.width, canvas.height - 250);
-  snowMask.cache(0, 0, canvas.width, canvas.height);
-  filtersList.push(snowMask);
-  filtersList.push(skyMask);
-
-
-  // 「舞台」の中にものを映し出す「画面」に画像を設定します（0~6で設定しておくつもり）
-  display = new createjs.Bitmap(backgroundList[2]);
-  // 「画面」にマスクをくっつけます
-  display.filters = [
-    new createjs.AlphaMaskFilter(snowMask.cacheCanvas)
-  ];
-  display.cache(0, 0, canvas.width, canvas.height);
-  stage.enableDOMEvents(true);
-  // 今回の「舞台」を「タッチ（クリック）」「可能」にします
-  createjs.Touch.enable(stage);
-
-  // 舞台に画面を「備品として追加」するよ
-  stage.addChild(display);
-
-  // TODO: 音楽再生に関することを盛り込みたい
-
-  // 雪の生成をします
-  initSnows();
-
+function startApp() {
   // Step.1 描画の開始
   render();
 }
 
 // Step.5: タイトルの文字に対して，まとめて処理を行う操作（定義はcommon.js参照）
 setModeChange();
-
-
 /*
  * Snow Effect
  */
@@ -180,7 +68,6 @@ function initSnows() {
 
   // Step.2-1#2-1: コメントの解除によってループを実行
   for (var i = 0, l = max; i < l; i++) {
-    // TODO: この処理まとめれる（下にほぼ同じものが2つ）
     var size = Math.floor(canvas.width / 1000 + Math.random() * 20);
     var data = createData(size);
     // Step.2-1#1: 雪の生成
@@ -220,20 +107,18 @@ Snow.prototype.create = function(isLanding, data) {
   this.regY = size / 2;
   this.rotation = 0;
   this.rAngle = snowAngles[parseInt(Math.random() * 4)];
-  //
+
   this.base_x = this.x;
   this.angle = 0;
   // 雪の振れ幅を決定
   this.vangle = (Math.random() - Math.random()) / size / 16;
-
-  // 積もっているかどうか
-  this.isLanding = isLanding;
-
   //　雪が降る速度
   this.vy = size * 0.05;
   //　雪が左右に舞う時の速度
   this.vx = size * 10;
 
+  // 積もっているかどうか
+  this.isLanding = isLanding;
   if (!isLanding) {
     // Step.4: 空中を舞っている間は，雪をクリック可能
     this.addEventListener('click', this.clicked);
@@ -241,11 +126,7 @@ Snow.prototype.create = function(isLanding, data) {
 
   // TODO: この辺，実習作業に入れる?
   // hitareaの拡張
-  var hitAreaShape = new createjs.Shape();
-  hitAreaShape.x = size / 2 - 80;
-  hitAreaShape.y = size / 2 - 80;
-  hitAreaShape.graphics.beginFill("#000000").drawEllipse(0, 0, 160, 160);
-  this.hitArea = hitAreaShape;
+  this.hitArea = createHitArea(size);
 
   this.imgMain = imgSnow;
   this.imgReverse = imgReverse;
@@ -292,16 +173,14 @@ Snow.prototype.update = function(i) {
           display.filters = [
             new createjs.AlphaMaskFilter(snowMask.cacheCanvas)
           ];
-          // console.log(display.filters);
-          // TODO: どっちが正しいんだ？
+
           display.cache(0, 0, canvas.width, canvas.height);
-          // display.updateCache();
 
           if(landingLine === canvas.height - 250) {
             isEditable = true;
             // 舞台上でマウスのボタンを押し込んだ時に呼び出す命令を設定するよ。「押した」と「離した」を設定
 
-            // Step.6: マル秘機能の搭載
+            // Step.SP1: マル秘機能の搭載
             specialFunc();
           }
         }
@@ -328,14 +207,13 @@ Snow.prototype.update = function(i) {
   }
 };
 
-
 // 描画
 function render() {
-  // TODO: この辺の処理なんとかならんかな
   // Step.2-2: 時間経過とともに，雪を降らせる
   frameCount++;
   //
   if (frameCount % 2 == 1) {
+    // TODO: この処理まとめれるけど，まとめると模擬授業での画面移動が多すぎて断念
     var size = Math.floor(stage.canvas.width / 1000 + Math.random() * 20);
     var data = createData(size);
     var snow = (new Snow(imgMain)).create(false, data);
@@ -401,5 +279,130 @@ function specialFunc() {
   $("#canvas").addClass("editable");
 }
 
+// hitAreaの作成
+function createHitArea(size) {
+  var hitAreaShape = new createjs.Shape();
+  hitAreaShape.x = size / 2 - 80;
+  hitAreaShape.y = size / 2 - 80;
+  hitAreaShape.graphics.beginFill("#000000").drawEllipse(0, 0, 160, 160);
+}
 
-preload();
+// プログラム内で読み込む画像データなどをここで手元に置いておくことにします。「あらかじめ」やることをまとめるよ命令です
+function preload() {
+  var queue = new createjs.LoadQueue(false);
+  queue.setMaxConnections(2);
+  // どの画像をどんな名前で管理するかを決定するよ。「id」は「識別子」，誰ともかぶることのない，独自の番号（名前）。「src」は「source（源）」の略
+  var manifest = [{
+      "id": "snow",
+      "src": "./assets/snow.png"
+    }, {
+      "id": "landing_snow",
+      "src": "./assets/landing_snow.png"
+    }, {
+      // どっち使ったらいいのかを決めなきゃね
+      "id": "cristal",
+      "src": "./assets/cristal.png"
+    }, {
+      "id": "town0",
+      "src": "./assets/images/town0.jpg"
+    }, {
+      "id": "town1",
+      "src": "./assets/images/town1.jpg"
+    }, {
+      "id": "town2",
+      "src": "./assets/images/town2.jpg"
+    }, {
+      "id": "town3",
+      "src": "./assets/images/town3.jpg"
+    }, {
+      "id": "town4",
+      "src": "./assets/images/town4.jpg"
+    }, {
+      "id": "town5",
+      "src": "./assets/images/town5.jpg"
+    }, {
+      "id": "town6",
+      "src": "./assets/images/town6.jpg"
+    }, {
+      "id": "town7",
+      "src": "./assets/images/town7.jpg"
+    }
+    //, {"id":"cristal", "src":"./assets/cristal.svg"}
+  ];
+  // 指定したリスト（マニフェスト）に従って画像を読み込むよー
+  queue.loadManifest(manifest, false);
+  queue.load();
+  // 読み込みが完了したら「handleComplete」って命令を起動するよ
+  queue.addEventListener("complete", handleComplete);
+
+}
+
+// 読み込みが完了したよ，万歳。取得した情報は「event」という名前で取得することにします
+function handleComplete(event) {
+  // 読み込み完了に伴い，その結果を保存します
+  var result = event.target._loadedResults;
+  // 決めてあった箱に画像データを入れていくよ。
+  // プログラムで「=」は，左辺のものに右辺のものを入れます意味です。イコールじゃないから要注意
+  imgSnow = result["snow"];
+  imgLandingSnow = result["landing_snow"];
+  imgCristal = result["cristal"];
+  imgMain = imgSnow;
+  imgReverse = imgCristal;
+  for(var i = 0; i < 8; i++) {
+    backgroundList[i] = result["town" + i];
+  }
+
+  // よし，事前情報は集まった。いざ，このプログラムの初期化を初期化するよ
+  init();
+}
+
+// 初期化（initialize）するための命令です。必要な情報を箱に詰め込んでいきます
+function init() {
+  canvas = $("#canvas")[0];
+  W = innerWidth;
+  H = innerHeight;
+  canvas.width = W;
+  canvas.height = H;
+  video.width = W;
+  video.height = H;
+  bgVideo = document.getElementById( 'video' );
+  bgVideo.width = W;
+  bgVideo.height = H;
+
+  // さあ，いよいよ僕らの舞台を作成するよ。「canvas」を使って舞台を作って保存！
+  stage = new createjs.Stage(canvas);
+
+  // 舞台に被せるための「マスク」を作っておきましょう
+  mouseMoveMask = new createjs.Shape();
+  mouseMoveMask.graphics.drawRect(0, 0, canvas.width, canvas.height);
+  mouseMoveMask.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
+
+  snowMask = new createjs.Shape();
+  snowMask.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
+  snowMask.graphics.beginFill("#ffffff").drawRect(0, 250, canvas.width, canvas.height - 250);
+  snowMask.cache(0, 0, canvas.width, canvas.height);
+  filtersList.push(snowMask);
+  filtersList.push(skyMask);
+
+
+  // 「舞台」の中にものを映し出す「画面」に画像を設定します（0~6で設定しておくつもり）
+  display = new createjs.Bitmap(backgroundList[2]);
+  // 「画面」にマスクをくっつけます
+  display.filters = [
+    new createjs.AlphaMaskFilter(snowMask.cacheCanvas)
+  ];
+  display.cache(0, 0, canvas.width, canvas.height);
+  stage.enableDOMEvents(true);
+  // 今回の「舞台」を「タッチ（クリック）」「可能」にします
+  createjs.Touch.enable(stage);
+
+  // 舞台に画面を「備品として追加」するよ
+  stage.addChild(display);
+
+  // TODO: 音楽再生に関することを盛り込みたい
+
+  // 雪の生成をします
+  initSnows();
+
+  startApp();
+}
