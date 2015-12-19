@@ -23,7 +23,7 @@ var canvas, // 画面にものを表示する部分。絵を描くときにキ�
   snowMask, // 顔に付ける仮面は英語でMask。覆い隠すもの。雪を表現するためにdisplayに被せます
   mouseMoveMask, // snowMaskと同じく，displayに被せます。これは，マウスの軌跡を記録するよ
   // TODO: ↓これ，使い道を模索中。マスク同士の結合ができない限り出番はない
-  maskSky, // マスクは本来切り出すために存在します。空を空として表示するために被せるマスク。
+  skyMask, //　アルファマスクは本来切り出すために存在します。空を空として表示するために被せるマスク。
   W, // ブラウザの横幅を保持するためのもの
   H, // ブラウザの高さを保持します
   imgSnow, // 雪の画像データをここに入れて管理します。imgはimageの省略形
@@ -46,6 +46,9 @@ var canvas, // 画面にものを表示する部分。絵を描くときにキ�
   bgVideo, // Webカメラから取得した映像を管理します
   backgroundList = []; // 背景画像の一覧を取得するよ。
 
+// TODO: filters test
+var filtersList = [];
+
 // プログラム内で読み込む画像データなどをここで手元に置いておくことにします。「あらかじめ」やることをまとめるよ命令です
 function preload() {
   var queue = new createjs.LoadQueue(true);
@@ -64,6 +67,21 @@ function preload() {
     }, {
       "id": "default",
       "src": "./assets/images/default.jpg"
+    }, {
+      "id": "town1",
+      "src": "./assets/images/town1.jpg"
+    }, {
+      "id": "town2",
+      "src": "./assets/images/town2.jpg"
+    }, {
+      "id": "town3",
+      "src": "./assets/images/town3.jpg"
+    }, {
+      "id": "town4",
+      "src": "./assets/images/town4.jpg"
+    }, {
+      "id": "town5",
+      "src": "./assets/images/town5.jpg"
     }, {
       "id": "town6",
       "src": "./assets/images/town6.jpg"
@@ -90,7 +108,9 @@ function handleComplete(event) {
   imgMain = imgSnow;
   imgReverse = imgCristal;
   backgroundList[0] = result["default"];
-  backgroundList[6] = result["town" + 6];
+  for(var i = 0; i < 8; i++) {
+    backgroundList[i] = result["town" + i];
+  }
 
   // よし，事前情報は集まった。いざ，このプログラムの初期化を初期化するよ
   init();
@@ -121,9 +141,12 @@ function init() {
   snowMask.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
   snowMask.graphics.beginFill("#ffffff").drawRect(0, 250, canvas.width, canvas.height - 250);
   snowMask.cache(0, 0, canvas.width, canvas.height);
+  filtersList.push(snowMask);
+  filtersList.push(skyMask);
+
 
   // 「舞台」の中にものを映し出す「画面」に画像を設定します（0~6で設定しておくつもり）
-  display = new createjs.Bitmap(backgroundList[6]);
+  display = new createjs.Bitmap(backgroundList[2]);
   // 「画面」にマスクをくっつけます
   display.filters = [
     new createjs.AlphaMaskFilter(snowMask.cacheCanvas)
@@ -132,12 +155,6 @@ function init() {
   stage.enableDOMEvents(true);
   // 今回の「舞台」を「タッチ（クリック）」「可能」にします
   createjs.Touch.enable(stage);
-  // 舞台上でマウスのボタンを押し込んだ時に呼び出す命令を設定するよ。「押した」と「離した」を設定
-
-  // Step.6: 「押した」ときの動作，「マウスの左ボタンが押し込まれたときの操作」命令を呼び出すを設定。「handle」は車のハンドルと同じような意味です
-  stage.addEventListener("stagemousedown", handleMouseDown);
-
-  stage.addEventListener("stagemouseup", handleMouseUp);
 
   // 舞台に画面を「備品として追加」するよ
   stage.addChild(display);
@@ -147,7 +164,7 @@ function init() {
   // 雪の生成をします
   initSnows();
 
-  // TODO: Step.1 描画の開始
+  // Step.1 描画の開始
   render();
 }
 
@@ -275,15 +292,17 @@ Snow.prototype.update = function(i) {
           display.filters = [
             new createjs.AlphaMaskFilter(snowMask.cacheCanvas)
           ];
-          console.log(display.filters);
+          // console.log(display.filters);
           // TODO: どっちが正しいんだ？
           display.cache(0, 0, canvas.width, canvas.height);
           // display.updateCache();
 
           if(landingLine === canvas.height - 250) {
             isEditable = true;
-            // TODO: Step.?: マウスカーソルの変更
-            $("#canvas").addClass("editable");
+            // 舞台上でマウスのボタンを押し込んだ時に呼び出す命令を設定するよ。「押した」と「離した」を設定
+
+            // Step.6: マル秘機能の搭載
+            specialFunc();
           }
         }
       }
@@ -375,5 +394,12 @@ function handleMouseUp(event) {
   console.log("MouseUp");
   stage.removeEventListener("stagemousemove", handleMouseMove);
 }
+
+function specialFunc() {
+  stage.addEventListener("stagemouseup", handleMouseUp);
+  stage.addEventListener("stagemousedown", handleMouseDown);
+  $("#canvas").addClass("editable");
+}
+
 
 preload();
