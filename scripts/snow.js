@@ -266,7 +266,7 @@ Snow.prototype.update = function(i) {
           display.filters = [
             new createjs.AlphaMaskFilter(snowMask.cacheCanvas)
           ];
-          // TODO: どっちが正しいんだ？
+          // TODO: どっちがいいんだ？
           display.cache(0, 0, canvas.width, canvas.height);
           // display.updateCache();
 
