@@ -33,6 +33,12 @@ var canvas, // 画面にものを表示する部分。絵を描くときにキ�
   imgReverse, // 現在のモードと異なるものを管理。モードが変わればimgSnowの中身と入れ替えます
   icon, // 雪の結晶のアイコンを管理するためのもの
   snows = [], // ホワイトクリスマスを再現するために，画面に降る雪を降らせます。その雪たちをまとめて管理するためのもの
+  snowAngles = {
+    0: -2,
+    1: -1,
+    2: 1,
+    3: 2
+  }, // 雪の回転角を決定するときに使用します
   frameCount = 0, // 時間を数えるための単位の一つにフレームという概念があります。このプログラムが始まってからどれくらいの時間が経過したのかを計測します
   landingCount = 0, // 地面に降り注いだ雪の数を計測します
   landingLine = 0, // 現在の空と積もった雪の境界線の高さを管理します
@@ -129,7 +135,7 @@ function init() {
   // 舞台上でマウスのボタンを押し込んだ時に呼び出す命令を設定するよ。「押した」と「離した」を設定
 
   // Step.6: 「押した」ときの動作，「マウスの左ボタンが押し込まれたときの操作」命令を呼び出すを設定。「handle」は車のハンドルと同じような意味です
-  // stage.addEventListener("stagemousedown", handleMouseDown);
+  stage.addEventListener("stagemousedown", handleMouseDown);
 
   stage.addEventListener("stagemouseup", handleMouseUp);
 
@@ -142,7 +148,7 @@ function init() {
   initSnows();
 
   // TODO: Step.1 描画の開始
-  // render();
+  render();
 }
 
 // Step.5: タイトルの文字に対して，まとめて処理を行う操作（定義はcommon.js参照）
@@ -156,14 +162,14 @@ function initSnows() {
   var max = Math.floor(canvas.width / 40);
 
   // Step.2-1#2-1: コメントの解除によってループを実行
-  // for (var i = 0, l = max; i < l; i++) {
+  for (var i = 0, l = max; i < l; i++) {
     // TODO: この処理まとめれる（下にほぼ同じものが2つ）
     var size = Math.floor(canvas.width / 1000 + Math.random() * 20);
     var data = createData(size);
     // Step.2-1#1: 雪の生成
-    // var snow = (new Snow(imgMain)).create(false, data);
+    var snow = (new Snow(imgMain)).create(false, data);
   // Step.2-1#2-2: コメントの解除によってループを実行
-  // }
+  }
 }
 
 function createData(size) {
@@ -193,9 +199,10 @@ Snow.prototype.create = function(isLanding, data) {
   this.scaleY = scale;
   this.x = data.x;
   this.y = data.y;
-  // this.regX = size / 2;
-  // this.regY = size / 2;
-
+  this.regX = size / 2;
+  this.regY = size / 2;
+  this.rotation = 0;
+  this.rAngle = snowAngles[parseInt(Math.random() * 4)];
   //
   this.base_x = this.x;
   this.angle = 0;
@@ -212,7 +219,7 @@ Snow.prototype.create = function(isLanding, data) {
 
   if (!isLanding) {
     // Step.4: 空中を舞っている間は，雪をクリック可能
-    // this.addEventListener('click', this.clicked);
+    this.addEventListener('click', this.clicked);
   }
 
   // TODO: この辺，実習作業に入れる?
@@ -239,7 +246,9 @@ Snow.prototype.clicked = function(e) {
   e.target.imgReverse = e.target.imgMain;
   e.target.imgMain = tmp;
 };
-
+Snow.prototype.rotate = function() {
+  this.rotation += this.rAngle;
+}
 Snow.prototype.update = function(i) {
   if (this.isLanding) {
     this.alpha -= 0.0015;
@@ -255,7 +264,7 @@ Snow.prototype.update = function(i) {
         // TODO: ここの設定を最適化
         if (landingCount % 1 === 0 && landingLine < canvas.height) {
           // Step.3: 雪がどこまで積もったかの位置を変更します。画面の下(bottom)から何px(ピクセル)の高さまで積もったかを設定。
-          // landingLine++;
+          landingLine++;
 
           // マスクの変更 境界線を美しく出すためにはどうしたらいい？
           var snowMask = new createjs.Shape();
@@ -266,7 +275,8 @@ Snow.prototype.update = function(i) {
           display.filters = [
             new createjs.AlphaMaskFilter(snowMask.cacheCanvas)
           ];
-          // TODO: どっちがいいんだ？
+          console.log(display.filters);
+          // TODO: どっちが正しいんだ？
           display.cache(0, 0, canvas.width, canvas.height);
           // display.updateCache();
 
@@ -281,7 +291,7 @@ Snow.prototype.update = function(i) {
       stage.removeChild(this);
     }
   } else {
-    this.rotation++;
+    this.rotate();
     //
     this.angle += this.vangle;
     this.y += this.vy;
@@ -304,7 +314,7 @@ Snow.prototype.update = function(i) {
 function render() {
   // TODO: この辺の処理なんとかならんかな
   // Step.2-2: 時間経過とともに，雪を降らせる
-  // frameCount++;
+  frameCount++;
   //
   if (frameCount % 2 == 1) {
     var size = Math.floor(stage.canvas.width / 1000 + Math.random() * 20);
