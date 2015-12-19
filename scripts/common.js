@@ -67,9 +67,11 @@ $('.fileReader').click(function() {
 // TODO: 個々の処理，addEventListenerにして，参加者に一行だけ書かせる
 var title = $('#title')[0];
 var modeFlag = true;
-title.addEventListener('click', clickTitle);
-title.addEventListener('mouseover', mouseoverTitle);
-title.addEventListener('mouseout', mouseoverTitle);
+function setModeChange() {
+  title.addEventListener('click', clickTitle);
+  title.addEventListener('mouseover', mouseoverTitle);
+  title.addEventListener('mouseout', mouseoverTitle);
+}
 
 function clickTitle() {
   if (modeFlag) {

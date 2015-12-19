@@ -1,3 +1,4 @@
+// CreateJSでは本来tickを使用するけれど，今回は自分で実装
 window.requestAnimationFrame =
   window.requestAnimationFrame ||
   window.mozRequestAnimationFrame ||
@@ -6,38 +7,44 @@ window.requestAnimationFrame =
   function(cb) {
     setTimeout(cb, 17);
   };
+// 今回はchrome限定での使用を考えて作成したけれど，本来Webカメラのキャプチャを使用したい場合はこういった記述が必要
 navigator.getMedia = ( navigator.getUserMedia ||
                           navigator.webkitGetUserMedia ||
                           navigator.mozGetUserMedia ||
                           navigator.msGetUserMedia );
-var canvas,
-  stage,
-  display,
-  maskSnow,
-  maskTrack,
-  maskSky,
-  isEditable = false,
-  W,
-  H,
-  imgSnow,
-  imgLandingSnow,
-  imgCristal,
-  imgMain,
-  imgReverse,
-  icon,
-  snows = [],
-  frameCount = 0,
-  landingCount = 0,
-  landingLine = 0,
-  bgVideo,
-  backgroundList = {};
-
 /*
- * common
+ * プログラムに使用するパラメータ類の設定。
+ * データには名前を付けなきゃなんの名前か分からないよね？
+ * ここでは，データの入れ物に名前を付けています。目印は，「var」
  */
+var canvas, // 画面にものを表示する部分。絵を描くときにキャンバスを使用するでしょ？そのキャンバス
+  stage, // CreateJS独自のもの。ものを自表示するのは舞台。だから舞台上に部品を置いておきます
+  display, // 舞台上に映像を投影するディスプレイを設置。テレビのモニターって言ってもいいもの
+  snowMask, // 顔に付ける仮面は英語でMask。覆い隠すもの。雪を表現するためにdisplayに被せます
+  mouseMoveMask, // snowMaskと同じく，displayに被せます。これは，マウスの軌跡を記録するよ
+  // TODO: ↓これ，使い道を模索中。マスク同士の結合ができない限り出番はない
+  maskSky, // マスクは本来切り出すために存在します。空を空として表示するために被せるマスク。
+  W, // ブラウザの横幅を保持するためのもの
+  H, // ブラウザの高さを保持します
+  imgSnow, // 雪の画像データをここに入れて管理します。imgはimageの省略形
+  imgLandingSnow, // 地面に触れたときの雪は潰れて大地を覆います。潰れた雪の塊の画像データを管理
+  imgCristal, // 雪の結晶の画像データを管理
+  imgSnow, // 今回は雪モードと雪の結晶モードの二つのモードがあります。現在のモードにふさわしい画像データを管理
+  imgReverse, // 現在のモードと異なるものを管理。モードが変わればimgSnowの中身と入れ替えます
+  icon, // 雪の結晶のアイコンを管理するためのもの
+  snows = [], // ホワイトクリスマスを再現するために，画面に降る雪を降らせます。その雪たちをまとめて管理するためのもの
+  frameCount = 0, // 時間を数えるための単位の一つにフレームという概念があります。このプログラムが始まってからどれくらいの時間が経過したのかを計測します
+  landingCount = 0, // 地面に降り注いだ雪の数を計測します
+  landingLine = 0, // 現在の空と積もった雪の境界線の高さを管理します
+  isEditable = false, // 現在の雪が編集可能かを管理します。お楽しみに
+  bgVideo, // Webカメラから取得した映像を管理します
+  backgroundList = []; // 背景画像の一覧を取得するよ。
+
+// プログラム内で読み込む画像データなどをここで手元に置いておくことにします。「あらかじめ」やることをまとめるよ命令です
 function preload() {
   var queue = new createjs.LoadQueue(true);
   queue.setMaxConnections(2);
+  // どの画像をどんな名前で管理するかを決定するよ。「id」は「識別子」，誰ともかぶることのない，独自の番号（名前）。「src」は「source（源）」の略
   var manifest = [{
       "id": "snow",
       "src": "./assets/snow.png"
@@ -55,34 +62,39 @@ function preload() {
       "id": "town6",
       "src": "./assets/images/town6.jpg"
     }
-    // {"id":"cristal", "src":"./assets/cristal.svg"}
+    //, {"id":"cristal", "src":"./assets/cristal.svg"}
   ];
-
+  // 指定したリスト（マニフェスト）に従って画像を読み込むよー
   queue.loadManifest(manifest, false);
   queue.load();
+  // 読み込みが完了したら「handleComplete」って命令を起動するよ
   queue.addEventListener("complete", handleComplete);
 
 }
 
-
+// 読み込みが完了したよ，万歳。取得した情報は「event」という名前で取得することにします
 function handleComplete(event) {
+  // 読み込み完了に伴い，その結果を保存します
   var result = event.target._loadedResults;
+  // 決めてあった箱に画像データを入れていくよ。
+  // プログラムで「=」は，左辺のものに右辺のものを入れます意味です。イコールじゃないから要注意
   imgSnow = result["snow"];
   imgLandingSnow = result["landing_snow"];
   imgCristal = result["cristal"];
-  imgMain = imgSnow;
+  imgSnow = imgSnow;
   imgReverse = imgCristal;
   backgroundList[0] = result["default"];
   backgroundList[6] = result["town" + 6];
 
+  // よし，事前情報は集まった。いざ，このプログラムの初期化を初期化するよ
   init();
 }
 
+// 初期化（initialize）するための命令です。必要な情報を箱に詰め込んでいきます
 function init() {
   canvas = $("#canvas")[0];
   W = innerWidth;
   H = innerHeight;
-
   canvas.width = W;
   canvas.height = H;
   video.width = W;
@@ -91,75 +103,67 @@ function init() {
   bgVideo.width = W;
   bgVideo.height = H;
 
-
-  // 雪の積もった後には絵が描ける
+  // さあ，いよいよ僕らの舞台を作成するよ。「canvas」を使って舞台を作って保存！
   stage = new createjs.Stage(canvas);
 
+  // 舞台に被せるための「マスク」を作っておきましょう
+  mouseMoveMask = new createjs.Shape();
+  mouseMoveMask.graphics.drawRect(0, 0, canvas.width, canvas.height);
+  mouseMoveMask.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
 
-  // TODO: filterの処理を開始
-  maskTrack = new createjs.Shape();
-  maskTrack.graphics.drawRect(0, 0, canvas.width, canvas.height);
-  maskTrack.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
+  snowMask = new createjs.Shape();
+  snowMask.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
+  snowMask.graphics.beginFill("#ffffff").drawRect(0, 250, canvas.width, canvas.height - 250);
+  snowMask.cache(0, 0, canvas.width, canvas.height);
 
-  maskSnow = new createjs.Shape();
-  maskSnow.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
-  maskSnow.graphics.beginFill("#ffffff").drawRect(0, 250, canvas.width, canvas.height - 250);
-  // maskSnow.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, canvas.height);
-  maskSnow.cache(0, 0, canvas.width, canvas.height);
-
-  // 表示するべき背景の生成
+  // 「舞台」の中にものを映し出す「画面」に画像を設定します（0~6で設定しておくつもり）
   display = new createjs.Bitmap(backgroundList[6]);
-
+  // 「画面」にマスクをくっつけます
   display.filters = [
-    new createjs.AlphaMaskFilter(maskSnow.cacheCanvas)
+    new createjs.AlphaMaskFilter(snowMask.cacheCanvas)
   ];
-
   display.cache(0, 0, canvas.width, canvas.height);
-
-
-  // これ，同じ画面でするなら使えない気がする
-  // stage.autoClear = false;
-
   stage.enableDOMEvents(true);
+  // 今回の「舞台」を「タッチ（クリック）」「可能」にします
   createjs.Touch.enable(stage);
+  // 舞台上でマウスのボタンを押し込んだ時に呼び出す命令を設定するよ。「押した」と「離した」を設定
 
-  // drawingCanvas = new createjs.Shape();
-
+  // Step.6: 「押した」ときの動作，「マウスの左ボタンが押し込まれたときの操作」命令を呼び出すを設定。「handle」は車のハンドルと同じような意味です
   stage.addEventListener("stagemousedown", handleMouseDown);
+
   stage.addEventListener("stagemouseup", handleMouseUp);
-  // stage.addEventListener("stagemousedown", startWipe);
-  // stage.addEventListener("stagemouseup", stopWipe);
 
-  // TODO: Maskの実験中
+  // 舞台に画面を「備品として追加」するよ
   stage.addChild(display);
-  console.log(stage);
 
-  // // お絵かきの実験中
-  // stage.addChild(drawingCanvas);
+  // TODO: 音楽再生に関することを盛り込みたい
 
-  // TODO: オーディオファイルを登録
-
-
+  // 雪の生成をします
   initSnows();
 
   // TODO: Step1 描画の開始
   render();
 }
 
+// Step.5: タイトルの文字に対して，まとめて処理を行う操作（定義はcommon.js参照）
+setModeChange();
 
 
 /*
- * snow effect
+ * Snow Effect
  */
 function initSnows() {
-  var max = Math.floor(stage.canvas.width / 40);
+  var max = Math.floor(canvas.width / 40);
 
+  // Step.2-1#2-1: コメントの解除によってループを実行
   for (var i = 0, l = max; i < l; i++) {
     // TODO: この処理まとめれる（下にほぼ同じものが2つ）
-    var size = Math.floor(stage.canvas.width / 1000 + Math.random() * 20);
+    var size = Math.floor(canvas.width / 1000 + Math.random() * 20);
     var data = createData(size);
-    var snow = (new Snow(imgMain));
+    // Step.2-1#1: 雪の生成
+    var snow = (new Snow(imgSnow));
     snow.create(false, data);
+  // Step.2-1#2-2: コメントの解除によってループを実行
   }
 }
 
@@ -208,10 +212,11 @@ Snow.prototype.create = function(isLanding, data) {
   this.vx = size * 10;
 
   if (!isLanding) {
+    // Step.4: 空中を舞っている間は，雪をクリック可能
     this.addEventListener('click', this.clicked);
   }
 
-  // TODO: この辺，実習作業に入れる
+  // TODO: この辺，実習作業に入れる?
   // hitareaの拡張
   var hitAreaShape = new createjs.Shape();
   hitAreaShape.x = size / 2 - 80;
@@ -219,7 +224,7 @@ Snow.prototype.create = function(isLanding, data) {
   hitAreaShape.graphics.beginFill("#000000").drawEllipse(0, 0, 160, 160);
   this.hitArea = hitAreaShape;
 
-  this.imgMain = imgMain;
+  this.imgSnow = imgSnow;
   this.imgReverse = imgReverse;
 
   snows.push(this);
@@ -232,8 +237,8 @@ Snow.prototype.clicked = function(e) {
   // createjs.Sound.play("bell");
   e.target.image = new createjs.Bitmap(e.target.imgReverse).image;
   var tmp = e.target.imgReverse;
-  e.target.imgReverse = e.target.imgMain;
-  e.target.imgMain = tmp;
+  e.target.imgReverse = e.target.imgSnow;
+  e.target.imgSnow = tmp;
 };
 
 Snow.prototype.update = function(i) {
@@ -250,19 +255,17 @@ Snow.prototype.update = function(i) {
         // 雪が何個地面に振り落ちたら積もるかの設定
         // TODO: ここの設定を最適化
         if (landingCount % 1 === 0 && landingLine < canvas.height) {
-          // TODO:
+          // 雪がどこまで積もったかの位置を変更します。画面の下(bottom)から何px(ピクセル)の高さまで積もったかを設定。
           landingLine++;
-          console.log(landingLine);
-          // landingLine = canvas.height - 250;
 
           // マスクの変更 境界線を美しく出すためにはどうしたらいい？
-          var maskSnow = new createjs.Shape();
-          maskSnow.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
-          maskSnow.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, canvas.height - landingLine);
-          maskSnow.cache(0, 0, canvas.width, canvas.height);
-          maskSnow.updateCache();
+          var snowMask = new createjs.Shape();
+          snowMask.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, 250);
+          snowMask.graphics.beginFill("#ffffff").drawRect(0, 0, canvas.width, canvas.height - landingLine);
+          snowMask.cache(0, 0, canvas.width, canvas.height);
+          snowMask.updateCache();
           display.filters = [
-            new createjs.AlphaMaskFilter(maskSnow.cacheCanvas)
+            new createjs.AlphaMaskFilter(snowMask.cacheCanvas)
           ];
           // TODO: どっちが正しいんだ？
           display.cache(0, 0, canvas.width, canvas.height);
@@ -270,6 +273,8 @@ Snow.prototype.update = function(i) {
 
           if(landingLine === canvas.height - 250) {
             isEditable = true;
+            // TODO: Step.?: マウスカーソルの変更
+            $("#canvas").addClass("editable");
           }
         }
       }
@@ -299,12 +304,13 @@ Snow.prototype.update = function(i) {
 // 描画
 function render() {
   // TODO: この辺の処理なんとかならんかな
+  // Step.2-2: 時間経過とともに，雪を降らせる
   frameCount++;
   //
-  if (frameCount % 2 == 0) {
+  if (frameCount % 2 == 1) {
     var size = Math.floor(stage.canvas.width / 1000 + Math.random() * 20);
     var data = createData(size);
-    var snow = (new Snow(imgMain)).create(false, data);
+    var snow = (new Snow(imgSnow)).create(false, data);
   }
 
   snows.forEach(function(snow, i) {
@@ -325,7 +331,7 @@ function handleMouseDown(event) {
   oldMidPt = oldPt;
 
   if(isEditable) {
-    stage.addEventListener("stagemousemove", handleMouseMove);  
+    stage.addEventListener("stagemousemove", handleMouseMove);
   }
 }
 
@@ -334,16 +340,16 @@ function handleMouseMove(event) {
 
   var midPt = new createjs.Point(oldPt.x + stage.mouseX >> 1, oldPt.y + stage.mouseY >> 1);
 
-  maskTrack.graphics.setStrokeStyle(30, 'round', 'round').beginStroke('#70A8DA').moveTo(midPt.x, midPt.y).curveTo(oldPt.x, oldPt.y, oldMidPt.x, oldMidPt.y);
+  mouseMoveMask.graphics.setStrokeStyle(30, 'round', 'round').beginStroke('#70A8DA').moveTo(midPt.x, midPt.y).curveTo(oldPt.x, oldPt.y, oldMidPt.x, oldMidPt.y);
 
   // TODO: マスクの合成実験
   // var tempShape = new createjs.Shape();
-  // tempShape = maskSnow;
-  // maskTrack.graphics.beginFill("#ffffff").draw(tempShape);
+  // tempShape = snowMask;
+  // mouseMoveMask.graphics.beginFill("#ffffff").draw(tempShape);
 
-  maskTrack.cache(0, 0, canvas.width, canvas.height);
+  mouseMoveMask.cache(0, 0, canvas.width, canvas.height);
   display.filters = [
-    new createjs.AlphaMaskFilter(maskTrack.cacheCanvas)
+    new createjs.AlphaMaskFilter(mouseMoveMask.cacheCanvas)
   ];
   // display.updateCache();
   display.cache(0, 0, canvas.width, canvas.height);

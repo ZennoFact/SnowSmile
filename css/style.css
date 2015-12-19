@@ -4,6 +4,10 @@
 
 body {
   background: #000;
+  user-select: none; /* CSS3 */
+  -moz-user-select: none; /* Firefox */
+  -webkit-user-select: none; /* Safari、Chrome, etc. */
+  -ms-user-select: none; /* IE10~ */
 }
 .container {
   position: relative;
@@ -13,10 +17,6 @@ h1{
   color: #fff;
   margin: 80px 50px;
   z-index: 3;
-  user-select: none; /* CSS3 */
-  -moz-user-select: none; /* Firefox */
-  -webkit-user-select: none; /* Safari、Chrome, etc. */
-  -ms-user-select: none; /* IE10~ */
 
   text-shadow: 2px 2px 1px #eee;
 }
@@ -110,4 +110,9 @@ h1{
 #video {
   // 映像の反転のために必要
   -webkit-transform: scaleX(-1);
+}
+
+/* ホットスポットの値は，画像のサイズ - 描画する線の太さ(64-12) */
+.editable {
+  cursor: url("../assets/cristal2.png") 52 52, auto;
 }
