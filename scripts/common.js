@@ -105,27 +105,36 @@ $('.video').click(function() {
   }
 });
 
+//soundInit();
+//var file = "./assets/sounds/02AllIWantForChristmasIsYou.mp3";
+//function soundInit() {
+//    var loader = new createjs.LoadQueue(false);
+//    loader.installPugin(createjs.Sound);
+//    loader.addEventListener("fileload", soundLoaded);
+//    loader.loadFile({src: file, id: "all"});
+//}
+//function soundLoaded(event) {
+//    Sound.play(event.item["all"]);
+//}
 
-// タイトルをアニメーション表示をしてみる
-// $(function(){
-//   var text = $("#title").text();
-//   $("#title").empty().show(); // いったん殻にして表示
-//   var array = text.split("");
-//   var elements = [];
-//
-//   array.forEach(function (item, i) {
-//     elements[i] = $("<span>" + array[i] + "</span>");
-//     $("#title").append(elements[i]);
-//   });
-//   elements.forEach(function (item, i) {
-//     elements[i]
-//             .delay(40 * i)
-//             .queue(function () {
-//               if(i < 13) {
-//                 $(this).addClass("motion green");
-//               } else {
-//                 $(this).addClass("motion red");
-//               }
-//             });
-//   });
-// });
+function soundLoad() {
+  createjs.Sound.alternateExtensions = ["mp3"];
+  createjs.Sound.on("fileload", this.loadHandler, this);
+  createjs.Sound.registerSound("./assets/sounds/SilentNight.mp3", "sn");
+  createjs.Sound.registerSound("./assets/sounds/JoyToTheWorld.mp3", "jw");
+  createjs.Sound.registerSound("./assets/sounds/AllIWantForChristmasIsYou.mp3", "ac");
+}
+// var sounds = [];
+function loadHandler(event) {
+  if (event.id === "sn") {
+    createjs.Sound.play("sn");
+  }
+  // This is fired for each sound that is registered.
+  // var instance = createjs.Sound.play("sn"); // play using id.  Could also use full sourcepath or event.src.
+  // instance.on("complete", soundHandleComplete, this);
+  // instance.volume = 0.5;
+  console.log(event.id);
+}
+
+// var sounds = [];
+soundLoad();

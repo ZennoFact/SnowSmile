@@ -160,7 +160,7 @@ Snow.prototype.update = function(i) {
 
         // 雪が何個地面に振り落ちたら積もるかの設定
         // TODO: ここの設定を最適化
-        if (landingCount % 1 === 0 && landingLine < canvas.height) {
+        if (landingCount % 2 === 0 && landingLine < canvas.height) {
           // Step.3: 雪がどこまで積もったかの位置を変更します。画面の下(bottom)から何px(ピクセル)の高さまで積もったかを設定。
           landingLine++;
 
@@ -277,6 +277,10 @@ function specialFunc() {
   stage.addEventListener("stagemouseup", handleMouseUp);
   stage.addEventListener("stagemousedown", handleMouseDown);
   $("#canvas").addClass("editable");
+  var firstMusic = createjs.Sound.createInstance("sn");
+  firstMusic.pause();
+  var secondMusic = createjs.Sound.createInstance("ac");
+  secondMusic.play("ac");
 }
 
 // hitAreaの作成
