@@ -105,36 +105,22 @@ $('.video').click(function() {
   }
 });
 
-//soundInit();
-//var file = "./assets/sounds/02AllIWantForChristmasIsYou.mp3";
-//function soundInit() {
-//    var loader = new createjs.LoadQueue(false);
-//    loader.installPugin(createjs.Sound);
-//    loader.addEventListener("fileload", soundLoaded);
-//    loader.loadFile({src: file, id: "all"});
-//}
-//function soundLoaded(event) {
-//    Sound.play(event.item["all"]);
-//}
+var sounds = [];
+var queue = new createjs.LoadQueue(true);
+queue.installPlugin(createjs.Sound);
 
-function soundLoad() {
-  createjs.Sound.alternateExtensions = ["mp3"];
-  createjs.Sound.on("fileload", this.loadHandler, this);
-  createjs.Sound.registerSound("./assets/sounds/SilentNight.mp3", "sn");
-  createjs.Sound.registerSound("./assets/sounds/JoyToTheWorld.mp3", "jw");
-  createjs.Sound.registerSound("./assets/sounds/AllIWantForChristmasIsYou.mp3", "ac");
-}
-// var sounds = [];
-function loadHandler(event) {
-  if (event.id === "sn") {
-    createjs.Sound.play("sn");
-  }
-  // This is fired for each sound that is registered.
-  // var instance = createjs.Sound.play("sn"); // play using id.  Could also use full sourcepath or event.src.
-  // instance.on("complete", soundHandleComplete, this);
-  // instance.volume = 0.5;
-  console.log(event.id);
-}
+//読み込むファイルを記述（複数可能）
+var manifest = [
+  {id:"sn",src:"./assets/sounds/SilentNight.mp3"},
+  {id:"jw",src:"./assets/sounds/JoyToTheWorld.mp3"},
+  {id:"ac",src:"./assets/sounds/AllIWantForChristmasIsYou.mp3"}];
+queue.loadManifest(manifest,true);
 
-// var sounds = [];
-soundLoad();
+//manifestで指定したファイルが１つ読み込まれるごとに実行される
+queue.addEventListener('fileload',handleFileLoad);
+function handleFileLoad(event){
+    sounds.push(createjs.Sound.createInstance(event.item.id));
+    if (event.item.id === "sn") {
+      sounds[0].play();
+    }
+}

@@ -277,10 +277,8 @@ function specialFunc() {
   stage.addEventListener("stagemouseup", handleMouseUp);
   stage.addEventListener("stagemousedown", handleMouseDown);
   $("#canvas").addClass("editable");
-  var firstMusic = createjs.Sound.createInstance("sn");
-  firstMusic.pause();
-  var secondMusic = createjs.Sound.createInstance("ac");
-  secondMusic.play("ac");
+  sounds[0].stop();
+  sounds[1].play();
 }
 
 // hitAreaの作成
